@@ -1,0 +1,65 @@
+Data quality checks
+   {'first_day': Timestamp('2013-01-01 00:00:00'), 'last_day': Timestamp('2017-12-31 00:00:00'), 'stores': 10, 'items': 50, 'rows': 913000}
+   {'duplicate_rows': 0}
+   {'series_with_gaps': 0}
+   {'bad_sales_rows': 0}
+   weekly rows: 130,000 | series: 500 | weeks: 2013-01-07 to 2017-12-25
+
+Forecast accuracy
+                method   wape    bias    rmse              window
+4-week moving average 0.1152  0.0717 62.6360 2016 H2 calibration
+  Same week last year 0.0901 -0.0817 47.5059 2016 H2 calibration
+             LightGBM 0.0466 -0.0112 25.3446 2016 H2 calibration
+4-week moving average 0.1106 -0.0032 59.4972           2017 test
+  Same week last year 0.0622 -0.0367 33.3353           2017 test
+             LightGBM 0.0441  0.0096 23.7773           2017 test
+
+Inventory replay, 2017
+                method  target_service  fill_rate  weeks_without_stockout  avg_inventory_units  weeks_of_supply  safety_stock_units
+4-week moving average           0.500     0.9446                  0.5223          126972.4399           0.6165              0.0000
+4-week moving average           0.600     0.9554                  0.5735          134028.2085           0.6507          12617.7826
+4-week moving average           0.700     0.9661                  0.6360          142019.3858           0.6895          26117.4159
+4-week moving average           0.800     0.9770                  0.7198          152227.8260           0.7391          41916.3811
+4-week moving average           0.850     0.9825                  0.7724          159088.4079           0.7724          51618.8699
+4-week moving average           0.900     0.9881                  0.8324          168403.6383           0.8176          63826.8163
+4-week moving average           0.950     0.9940                  0.9041          183485.7477           0.8909          81920.8319
+4-week moving average           0.970     0.9965                  0.9375          193941.0881           0.9416          93671.6644
+4-week moving average           0.980     0.9978                  0.9573          201885.6093           0.9802         102285.5873
+4-week moving average           0.990     0.9991                  0.9786          214789.5776           1.0429         115862.1958
+4-week moving average           0.995     0.9997                  0.9906          226911.4300           1.1017         128287.4511
+  Same week last year           0.500     0.9546                  0.4217          103595.7308           0.5030              0.0000
+  Same week last year           0.600     0.9662                  0.5288          107470.7640           0.5218           9685.3353
+  Same week last year           0.700     0.9767                  0.6437          112558.3636           0.5465          20047.5740
+  Same week last year           0.800     0.9862                  0.7661          119897.7284           0.5821          32174.7663
+  Same week last year           0.850     0.9905                  0.8270          125166.6058           0.6077          39622.3393
+  Same week last year           0.900     0.9944                  0.8899          132561.6570           0.6436          48993.0867
+  Same week last year           0.950     0.9978                  0.9490          144760.0874           0.7028          62881.9460
+  Same week last year           0.970     0.9988                  0.9718          153229.8206           0.7440          71901.8156
+  Same week last year           0.980     0.9993                  0.9817          159602.4616           0.7749          78513.8118
+  Same week last year           0.990     0.9997                  0.9918          169823.0727           0.8245          88935.1362
+  Same week last year           0.995     0.9998                  0.9959          179283.9458           0.8705          98472.6887
+             LightGBM           0.500     0.9871                  0.7286          115391.2933           0.5603              0.0000
+             LightGBM           0.600     0.9906                  0.7914          118905.8947           0.5773           5237.8445
+             LightGBM           0.700     0.9935                  0.8487          123045.6856           0.5974          10841.7595
+             LightGBM           0.800     0.9960                  0.9024          128354.4319           0.6232          17400.1641
+             LightGBM           0.850     0.9971                  0.9268          131829.4835           0.6401          21427.8233
+             LightGBM           0.900     0.9981                  0.9515          136386.3204           0.6622          26495.5382
+             LightGBM           0.950     0.9991                  0.9746          143421.0527           0.6963          34006.6552
+             LightGBM           0.970     0.9994                  0.9838          148119.1997           0.7192          38884.6148
+             LightGBM           0.980     0.9996                  0.9888          151610.0387           0.7361          42460.3928
+             LightGBM           0.990     0.9998                  0.9930          157156.3548           0.7630          48096.2614
+             LightGBM           0.995     0.9999                  0.9962          162263.6389           0.7878          53254.1847
+
+Summary
+ series                            500.0000
+wape_moving_avg_2017                0.1106
+wape_last_year_2017                 0.0622
+wape_lightgbm_2017                  0.0441
+in_stock_weeks_target               0.9500
+inventory_needed_moving_avg    198954.6209
+inventory_needed_last_year     145145.7245
+inventory_needed_lightgbm      136109.0713
+reduction_vs_moving_avg             0.3159
+reduction_vs_last_year              0.0623
+
+Outputs written to outputs and charts

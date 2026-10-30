@@ -1,0 +1,11 @@
+,value
+series,500.0
+wape_moving_avg_2017,0.11061419896917199
+wape_last_year_2017,0.062185907771882265
+wape_lightgbm_2017,0.04408567626885377
+in_stock_weeks_target,0.95
+inventory_needed_moving_avg,198954.62090342122
+inventory_needed_last_year,145145.7245225498
+inventory_needed_lightgbm,136109.07131728955
+reduction_vs_moving_avg,0.3158788134739472
+reduction_vs_last_year,0.06225917597632247
