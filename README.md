@@ -2,6 +2,8 @@
 
 **How much inventory does a better forecast actually save?** This project forecasts weekly demand for 500 SKU-locations, sets safety stock from each one's measured forecast error, and replays a full year of real demand to see what each forecast method costs in stock and stockouts.
 
+![Project summary chart](assets/social-preview.png)
+
 `Python` `SQL (DuckDB)` `LightGBM` `pandas` `SciPy` `matplotlib`
 
 ---
