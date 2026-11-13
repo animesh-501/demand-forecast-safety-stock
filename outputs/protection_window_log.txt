@@ -1,0 +1,21 @@
+Calibration error, all 500 SKU-locations summed
+                method  sqrt_rule_error_units  measured_3wk_error_units  measured_vs_sqrt_rule  week_to_week_error_correlation  bias_share_of_3wk_error  windows_per_series
+4-week moving average              49803.887                 75237.630                  1.511                           0.650                    0.361                  24
+  Same week last year              38229.509                 56242.282                  1.471                          -0.022                    0.840                  24
+             LightGBM              20674.817                 23012.676                  1.113                           0.051                    0.267                  24
+
+2017 replay at the 95% target setting
+                       weeks_without_stockout         fill_rate         avg_inventory_units             
+sizing                                  sqrt  window      sqrt  window                sqrt       window
+method                                                                                                 
+4-week moving average                 0.9041  0.9852    0.9940  0.9995         183485.3750  222480.1492
+Same week last year                   0.9490  0.9884    0.9978  0.9996         144760.0874  173466.6479
+LightGBM                              0.9746  0.9783    0.9991  0.9992         143421.6958  147177.6194
+
+Inventory needed for 95% stockout-free weeks (read off each curve)
+                            sqrt    window
+4-week moving average  198965.0  201019.0
+Same week last year    145146.0  148974.0
+LightGBM               136110.0  137599.0
+
+Outputs written to outputs and charts

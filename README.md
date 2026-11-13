@@ -35,7 +35,7 @@ To stay in stock in **95% of weeks** across all 500 SKU-locations in 2017:
 | **Planning grain** | Weekly demand per SKU-location (500 series) |
 | **Replenishment policy** | Weekly review, 2-week supplier lead time, order-up-to level |
 | **Order-up-to level** | Forecast for the next 3 weeks + safety stock |
-| **Safety stock** | z × weekly forecast error (RMSE) × √3 |
+| **Safety stock** | z × weekly forecast error (RMSE) × √3, tested against the measured 3-week error [below](#sizing-safety-stock-over-the-full-3-week-window) |
 | **Backtest** | Errors measured on Jul–Dec 2016 set safety stock; 2017 is replayed week by week and never used for fitting |
 
 **No look-ahead.** An order placed today has to cover the next 3 weeks. So every forecast, baseline or model, only uses demand from 3 or more weeks back. This is enforced in SQL ([`sql/03_features.sql`](sql/03_features.sql)).
@@ -64,11 +64,37 @@ The model leans almost entirely on last year's demand for that week and its neig
 
 ---
 
-## One thing the textbook formula misses
+## Sizing safety stock over the full 3-week window
 
 At the same 95% target setting, the moving average delivered only **90%** stockout-free weeks while holding **28% more stock** than LightGBM, which delivered **97%**.
 
-The √(lead time) formula assumes forecast errors are independent week to week. A lagging forecast's errors aren't: when it's wrong, it stays wrong for several weeks in the same direction. So the formula under-protects exactly the method that needs it most. Measuring the error over the full 3-week protection window would fix that.
+The textbook formula takes the weekly error and multiplies it by √3 to cover the 3-week protection window. That only holds if errors are unbiased and independent from week to week. To test it, I measured the forecast error summed over every 3-week window in the calibration half-year and set safety stock from that instead ([`protection_window.py`](protection_window.py)).
+
+| Method | Measured 3-week error vs. weekly × √3 | Week-to-week error correlation | Share of 3-week error that is bias |
+|---|---|---|---|
+| 4-week moving average | 51% larger | 0.65 | 36% |
+| Same week last year | 47% larger | −0.02 | 84% |
+| LightGBM | 11% larger | 0.05 | 27% |
+
+The formula falls short for two different reasons:
+- **Moving average:** its errors stick. When it is wrong one week, it is usually wrong the next week in the same direction.
+- **Same week last year:** its errors are independent week to week, but it runs short almost every week because demand grew. A steady bias adds up in full over 3 weeks, while √3 assumes errors partly cancel.
+
+LightGBM's errors are close to independent and unbiased, so the textbook formula is nearly right for it.
+
+![Target vs delivered in-stock weeks](charts/06_protection_window.png)
+
+**2017 replay at the 95% setting**
+
+| Method | Weekly error × √3: in-stock weeks / avg. units | Measured 3-week error: in-stock weeks / avg. units |
+|---|---|---|
+| 4-week moving average | 90.4% / ~183,000 | 98.5% / ~222,000 |
+| Same week last year | 94.9% / ~145,000 | 98.8% / ~173,000 |
+| LightGBM | 97.5% / ~143,000 | 97.8% / ~147,000 |
+
+- The moving average no longer falls short of its target. It now overshoots, because the calibration half-year carried more bias (+7.2%) than 2017 did (−0.3%), and this measure counts bias as error. Same for last year's pattern (−8.2% in calibration, −3.7% in 2017).
+- The stock needed to reach 95% stockout-free weeks barely moves: 199k → 201k for the moving average, 145k → 149k for last year, 136k → 138k for LightGBM. The comparison in the Result section holds under both sizings.
+- **For a planner:** with a simple forecast, size safety stock from the error over the full lead time plus review period, and track its bias separately, since bias is the part a growth or level correction can remove. With an unbiased model the √3 shortcut is close enough.
 
 ---
 
@@ -78,6 +104,7 @@ The √(lead time) formula assumes forecast errors are independent week to week.
 - Recorded sales are treated as true demand. In real data, sales during stockouts understate demand.
 - No minimum order quantities, case packs, shelf capacity or lead-time variability. Each would add stock on top of these numbers.
 - Safety stock assumes roughly normal errors and is set per SKU-location, not optimized jointly across the network.
+- The measured 3-week error comes from 24 overlapping windows per SKU-location (one half-year), so each estimate is noisy. A full year of calibration would steady it.
 
 ---
 
@@ -91,6 +118,14 @@ python run_all.py
 
 Runs in about 10 seconds and rebuilds every number and chart here. The full console output is in [`outputs/run_log.txt`](outputs/run_log.txt).
 
+The 3-week window test runs from the committed forecasts, so it works without the raw data:
+
+```bash
+python protection_window.py
+```
+
+Its console output is in [`outputs/protection_window_log.txt`](outputs/protection_window_log.txt).
+
 ```
 sql/
   01_quality_checks.sql      duplicates, gaps, negative sales (all zero)
@@ -101,10 +136,13 @@ src/
   forecast.py                baselines + LightGBM, WAPE / bias
   inventory.py               safety stock, order-up-to policy, week-by-week replay
   charts.py
+protection_window.py         safety stock from the measured 3-week error vs weekly error x sqrt(3)
 outputs/
   summary.csv                headline numbers
   forecast_accuracy.csv
   service_vs_inventory.csv   fill rate, in-stock weeks, inventory at each service target
   sku_location_policy.csv    forecast, error, safety stock, order-up-to level per SKU-location
   forecasts_2016h2_2017.csv  every weekly forecast vs actual
+  protection_window_error.csv   measured 3-week error, error correlation and bias share per method
+  protection_window_replay.csv  2017 replay at every target, both safety stock sizings
 ```

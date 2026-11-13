@@ -105,6 +105,35 @@ def importance_bars(importance):
     _save(fig, "05_feature_importance.png")
 
 
+def protection_window(rep):
+    """Target vs delivered in-stock weeks, textbook sqrt(3) sizing vs measured 3-week error."""
+    fig, axes = plt.subplots(1, 3, figsize=(10, 3.7), sharey=True)
+    for ax, name in zip(axes, METHODS.values()):
+        ax.plot([50, 100], [50, 100], color=MUTED, lw=0.8, ls=":")
+        for sizing, ls, label in [("sqrt", "--", "weekly error x \u221a3"),
+                                  ("window", "-", "measured 3-week error")]:
+            r = rep[(rep.method == name) & (rep.sizing == sizing)].sort_values("target_service")
+            ax.plot(r.target_service * 100, r.weeks_without_stockout * 100, color=COLORS[name],
+                    ls=ls, lw=2, marker="o", ms=4, label=label)
+            hit = r[r.target_service == TARGET_SERVICE].weeks_without_stockout.iloc[0] * 100
+            ax.annotate(f"{hit:.1f}%", (TARGET_SERVICE * 100, hit), xytext=(-36, 6) if sizing == "window" else (6, -16),
+                        textcoords="offset points", fontsize=8.5, color=INK)
+        ax.set_title(name, fontsize=10.5)
+        ax.set_xlabel("Target in-stock weeks")
+        ax.set_xlim(48, 101)
+        ax.set_ylim(40, 101)
+        ax.xaxis.set_major_formatter(mtick.PercentFormatter(decimals=0))
+        ax.yaxis.set_major_formatter(mtick.PercentFormatter(decimals=0))
+        ax.legend(loc="lower right", fontsize=8)
+    axes[0].set_ylabel("Delivered in 2017")
+    fig.suptitle("Does safety stock deliver the in-stock weeks it was set for? (2017 replay)",
+                 x=0.01, ha="left", fontweight="bold", fontsize=12)
+    fig.text(0.01, -0.03, "Dotted line = delivered exactly on target. Dashed = textbook formula, "
+             "solid = safety stock from the measured 3-week error. Labels show the 95% target.",
+             color=MUTED, fontsize=9)
+    _save(fig, "06_protection_window.png")
+
+
 def make_all(weekly, fc, accuracy, sim, importance, summary):
     demand_history(weekly)
     forecast_vs_actual(fc)

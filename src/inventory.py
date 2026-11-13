@@ -5,6 +5,7 @@ Policy (periodic review, order-up-to):
       S = forecast for the next 3 weeks + safety stock
   safety stock = z * RMSE_weekly * sqrt(3)
   where RMSE_weekly is that SKU-location's forecast error on the calibration half-year.
+  protection_window.py compares this with safety stock = z * RMSE of the measured 3-week error.
 
 Simulation: lost sales (no backorders), 2-week lead time, starts in steady state.
 """
@@ -21,6 +22,29 @@ KEYS = ["store", "item"]
 def error_rmse(df, col):
     calib = df[(df.week_start >= CALIB_START) & (df.week_start < TEST_START)]
     return calib.assign(e2=(calib[col] - calib.demand) ** 2).groupby(KEYS)["e2"].mean().pow(0.5)
+
+
+def window_error_rmse(df, col, weeks=PROTECTION_WEEKS):
+    """RMSE of the forecast error summed over every run of `weeks` consecutive calibration weeks.
+
+    This is the error the order actually has to cover. It equals weekly RMSE x sqrt(weeks)
+    only when errors are unbiased and independent week to week.
+    """
+    calib = df[(df.week_start >= CALIB_START) & (df.week_start < TEST_START)]
+    calib = calib.sort_values(KEYS + ["week_start"]).assign(e=lambda x: x[col] - x.demand)
+    window = calib.groupby(KEYS)["e"].transform(lambda s: s.rolling(weeks).sum())
+    return calib.assign(w2=window ** 2).dropna(subset=["w2"]).groupby(KEYS)["w2"].mean().pow(0.5)
+
+
+def protection_sigma(df, col, sizing="sqrt"):
+    """Error to protect against over the 3-week window, per SKU-location.
+
+    sizing="sqrt":   weekly RMSE x sqrt(3), the textbook formula
+    sizing="window": RMSE of the measured 3-week cumulative error
+    """
+    if sizing == "window":
+        return window_error_rmse(df, col).sort_index().to_numpy()
+    return error_rmse(df, col).sort_index().to_numpy() * np.sqrt(PROTECTION_WEEKS)
 
 
 def _matrices(df, col):
@@ -54,13 +78,13 @@ def simulate(d, f, ss):
     return sold, inv
 
 
-def evaluate(df, service_levels):
+def evaluate(df, service_levels, sizing="sqrt"):
     rows = []
     for col, name in METHODS.items():
         d, f = _matrices(df, col)
-        sigma = error_rmse(df, col).sort_index().to_numpy()
+        sigma = protection_sigma(df, col, sizing)
         for sl in service_levels:
-            ss = norm.ppf(sl) * sigma * np.sqrt(PROTECTION_WEEKS)
+            ss = norm.ppf(sl) * sigma
             sold, inv = simulate(d, f, ss)
             rows.append({
                 "method": name,
