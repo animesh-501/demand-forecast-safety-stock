@@ -59,7 +59,7 @@ def main():
         OUT_DIR / "forecasts_2016h2_2017.csv", index=False)
 
     charts.make_all(weekly, fc, accuracy, sim, importance, summary)
-    print(f"\nOutputs written to {OUT_DIR} and {CHART_DIR}")
+    print("\nOutputs written to outputs and charts")
 
 
 if __name__ == "__main__":

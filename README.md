@@ -23,7 +23,7 @@ To stay in stock in **95% of weeks** across all 500 SKU-locations in 2017:
 **What this means for a planner**
 1. **Drop the moving average.** It lags every seasonal turn. It over-forecast the late-2016 decline by 7%, then lagged the 2017 ramp. It needed 37–46% more stock than the other two methods for the same service.
 2. **Last year's pattern does most of the work.** "Same week last year" alone gets within 6% of the best result. Most of what LightGBM adds is correcting for growth: last year's numbers ran **3.7% short** on 2017 demand, while LightGBM's bias was +1.0%.
-3. **Set safety stock per SKU-location from measured error, not a flat weeks-of-cover rule.** The safety stock each SKU-location actually needs ranges from 0.10 to 0.34 weeks of cover, more than 3x apart, so a single cover rule overstocks some and starves others. The per-SKU parameters are in [`outputs/sku_location_policy.csv`](outputs/sku_location_policy.csv).
+3. **Set safety stock per SKU-location from its own measured error instead of a flat weeks-of-cover rule.** The safety stock each SKU-location actually needs ranges from 0.10 to 0.34 weeks of cover, more than 3x apart, so a single cover rule overstocks some and starves others. The per-SKU parameters are in [`outputs/sku_location_policy.csv`](outputs/sku_location_policy.csv).
 
 ---
 
@@ -74,7 +74,7 @@ The √(lead time) formula assumes forecast errors are independent week to week.
 
 ## Limits
 
-- **The data is very clean.** It has no stockouts, promotions, missing days or new items, so at the 95% target all three methods reach fill rates above 99%. Real-world errors and stockouts will be higher. **The comparison between methods is the result, not the absolute levels.**
+- **The data is very clean.** It has no stockouts, promotions, missing days or new items, so at the 95% target all three methods reach fill rates above 99%. Real-world errors and stockouts will be higher. **Read the gap between methods as the result; absolute levels on real data will be higher.**
 - Recorded sales are treated as true demand. In real data, sales during stockouts understate demand.
 - No minimum order quantities, case packs, shelf capacity or lead-time variability. Each would add stock on top of these numbers.
 - Safety stock assumes roughly normal errors and is set per SKU-location, not optimized jointly across the network.
